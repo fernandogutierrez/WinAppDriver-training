@@ -14,15 +14,15 @@ class ClassRoomManagerTest(unittest.TestCase):
 
     def tearDown(self):
         self.driver.close()
-        sshC = WindowsSSHManager('admin:Control123:10.31.18.10')
-        sshC.execute("powershell -command Stop-Process -Name 'TeacherMain'")
+        WindowsSSHManager.connect('admin:Control123:10.31.18.10')
+        WindowsSSHManager.execute("powershell -command Stop-Process -Name 'TeacherMain'")
 
     def setUp(self):
         desired_caps = dict()
         desired_caps["app"] = "C:\Program Files (x86)\Mythware\Classroom Management by Mythware\TeacherMain.exe"
-        self.driver = webdriver.Remote(command_executor='http://127.0.0.1:4723',
+        self.driver = webdriver.Remote(command_executor='http://10.31.18.10:4723',
                                        desired_capabilities=desired_caps)
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(20)
         system_login = SystemLogin(self.driver)
         self.welcome = Welcome(self.driver)
         self.offline_update = OffLineUpdate(self.driver)

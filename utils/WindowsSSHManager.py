@@ -2,28 +2,23 @@ from paramiko import *
 import re
 
 
-class WindowsSSHManager:
+class WindowsSSHManager(object):
     TIMEOUT = 10
+    client = None
 
-    def __init__(self, connection_string, **kwargs):
-        results = re.split(":", connection_string)
-        self.__key = kwargs.pop("key", None)
-        self.client = kwargs.pop("client", None)
-        self.__port = 22
-        self.__username = results[0]
-        self.__password = results[1]
-        self.__host = results[2]
-        self.connect(self.__host, self.__port, self.__username, self.__password, self.__key)
+    @staticmethod
+    def execute(command, **kwargs):
+        stdin, stdout, stderr = WindowsSSHManager.client.exec_command(command, **kwargs)
+        return {'out': stdout.readlines(),
+                'err': stderr.readlines(),
+                'retval': stdout.channel.recv_exit_status()}
 
-    def execute(self, command, **kwargs):
-        stdin, stdout, stderr = self.client.exec_command(command, **kwargs)
-        result = {'out': stdout.readlines(),
-                  'err': stderr.readlines(),
-                  'retval': stdout.channel.recv_exit_status()}
-        return result
+    @staticmethod
+    def connect(connection_string):
+        conn_str = re.split(":", connection_string)
 
-    def connect(self, host, port, username, password, key=None):
-        self.client = SSHClient()
-        self.client.set_missing_host_key_policy(AutoAddPolicy())
-        self.client.connect(host, port, username=username, password=password, pkey=key,
-                            timeout=self.TIMEOUT, look_for_keys=False, allow_agent=False)
+        if WindowsSSHManager.client is None:
+            WindowsSSHManager.client = SSHClient()
+            WindowsSSHManager.client.set_missing_host_key_policy(AutoAddPolicy())
+            WindowsSSHManager.client.connect(conn_str[2], 22, username=conn_str[0], password=conn_str[1],
+                                             timeout=WindowsSSHManager.TIMEOUT, look_for_keys=False, allow_agent=False)
