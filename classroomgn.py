@@ -1,18 +1,21 @@
+import random
+import string
 import unittest
-import subprocess
 from appium import webdriver
 from screens.SystemLogin import SystemLogin
 from screens.Welcome import Welcome
 from screens.OfflineUpdate import OffLineUpdate
 from screens.OnlineUpdate import OnlineUpdate
 from screens.LicenseInformation import LicenseInformation
+from utils.WindowsSSHManager import WindowsSSHManager
 
 
 class ClassRoomManagerTest(unittest.TestCase):
 
     def tearDown(self):
         self.driver.close()
-        subprocess.Popen("powershell.exe Get-Process -Name 'TeacherMain' | Stop-Process")
+        sshC = WindowsSSHManager('admin:Control123:10.31.18.10')
+        sshC.execute("powershell -command Stop-Process -Name 'TeacherMain'")
 
     def setUp(self):
         desired_caps = dict()
@@ -47,7 +50,7 @@ class ClassRoomManagerTest(unittest.TestCase):
     def test_register_online_update(self):
         self.welcome.click_register_now()
         self.license_inf.click_online_update()
-        self.online_update.set_serial_number('dddddddddddd')
+        self.online_update.set_serial_number(''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(10)))
         self.online_update.click_next()
         self.assertTrue(self.online_update.is_license_failed_error_displayed())
 
